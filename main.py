@@ -3,11 +3,6 @@ from pyodide.http import open_url
 from js import document
 from js import window
 
-
-
-# schedule tick() every 500 ms via the browser
-window.setInterval(create_proxy(tick), 500)
-
 # ————————————————————————————————————————————————————————————————————————————
 # Helper to load JSON
 def load_json(path):
