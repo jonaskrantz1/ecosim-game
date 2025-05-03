@@ -67,8 +67,11 @@ def tick(_=None):
     eco.update()
     rnd.render()
 
-# Instead of importing create_proxy, just schedule directly:
+# run every 500 ms using the browser's setInterval
 from js import window
-
-# window.setInterval will automatically wrap your Python function
 window.setInterval(tick, 500)
+
+# Expose Python variables to JS console for debugging
+import js
+js.window.eco = eco
+js.window.rnd = rnd
