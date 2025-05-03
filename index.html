@@ -15,12 +15,12 @@
         packages = ["numpy"]
     </py-config>
 
-    <!-- Load supporting modules first -->
+    <!-- Load all dependency modules first -->
     <py-script type="py" src="utils.py"></py-script>
     <py-script type="py" src="rendering.py"></py-script>
     <py-script type="py" src="ecosystem.py"></py-script>
 
-    <!-- Then load main entrypoint -->
-    <py-script src="main.py"></py-script>
+    <!-- Then load the main entrypoint -->
+    <py-script type="py" src="main.py"></py-script>
 </body>
 </html>
