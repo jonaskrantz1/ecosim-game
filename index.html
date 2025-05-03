@@ -7,17 +7,20 @@
     <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css">
     <script type="module" src="https://pyscript.net/releases/2024.2.1/core.js"></script>
     <link rel="stylesheet" href="styles.css">
-    
 </head>
 <body>
     <canvas id="game" width="1024" height="768"></canvas>
 
     <py-config>
-    packages = ["numpy"]
+        packages = ["numpy"]
     </py-config>
 
+    <!-- Load supporting modules first -->
+    <py-script type="py" src="utils.py"></py-script>
+    <py-script type="py" src="rendering.py"></py-script>
+    <py-script type="py" src="ecosystem.py"></py-script>
 
+    <!-- Then load main entrypoint -->
     <py-script src="main.py"></py-script>
-
 </body>
 </html>
