@@ -1,0 +1,24 @@
+[
+  {
+    "species": "Grass",
+    "growth_rate": 0.4,
+    "water_need": "low",
+    "sunlight_need": "medium",
+    "nutrient_need": "medium",
+    "reproduction_rate": 0.3,
+    "lifespan": 20,
+    "hardiness": "high",
+    "energy_value": 10
+  },
+  {
+    "species": "Bush",
+    "growth_rate": 0.2,
+    "water_need": "medium",
+    "sunlight_need": "high",
+    "nutrient_need": "medium",
+    "reproduction_rate": 0.2,
+    "lifespan": 50,
+    "hardiness": "medium",
+    "energy_value": 25
+  }
+]
