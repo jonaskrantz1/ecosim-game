@@ -1,17 +1,17 @@
 import json
 import random
 from pyodide.http import open_url
-from js import document, window, Image, simplex
+from js import document, window, Image, get_noise
 from pyodide.ffi import create_proxy
 
 # ————————————————————————————————————————————————————————————————————————————
 # Constants
-GRID_WIDTH  = 64   # 1024 / 16
-GRID_HEIGHT = 48   # 768 / 16
+GRID_WIDTH  = 64
+GRID_HEIGHT = 48
 TILE_SIZE   = 16
 
 # ————————————————————————————————————————————————————————————————————————————
-# Helper: load JSON from your data folder
+# Helper
 def load_json(path):
     resp = open_url(path)
     return json.loads(resp.read())
@@ -37,15 +37,15 @@ class Ecosystem:
         self.occupied = {(p.x, p.y) for p in self.plants}
 
     def generate_terrain(self):
-        """Generate smooth biomes using JS SimplexNoise."""
-        scale  = 0.1
-        offset = 100.0  # separate noise fields
+        """Generates smooth terrain using get_noise(x, y) from JS."""
+        scale = 0.1
+        offset = 100
         terrain = []
         for y in range(GRID_HEIGHT):
             row = []
             for x in range(GRID_WIDTH):
-                e = simplex.noise2D(x * scale, y * scale)
-                m = simplex.noise2D(x * scale + offset, y * scale + offset)
+                e = get_noise(x * scale, y * scale)
+                m = get_noise(x * scale + offset, y * scale + offset)
                 if e < -0.05:
                     row.append("water")
                 elif e < 0:
@@ -67,7 +67,7 @@ class Ecosystem:
         for p in self.plants:
             p.age += 1
             if random.random() < p.attrs["reproduction_rate"]:
-                dirs = [(-1,0),(1,0),(0,-1),(0,1)]
+                dirs = [(-1,0), (1,0), (0,-1), (0,1)]
                 random.shuffle(dirs)
                 for dx, dy in dirs:
                     nx, ny = p.x + dx, p.y + dy
@@ -89,7 +89,6 @@ class Renderer:
         self.eco = ecosystem
         self.tile = TILE_SIZE
 
-        # load spritesheet
         self.img = Image.new()
         self.img.src = "assets/sprites.png"
 
@@ -110,19 +109,14 @@ class Renderer:
         if not self.img.complete:
             return
 
-        # draw terrain base
-        self.ctx.clearRect(0, 0,
-            GRID_WIDTH * self.tile, GRID_HEIGHT * self.tile)
+        self.ctx.clearRect(0, 0, GRID_WIDTH * self.tile, GRID_HEIGHT * self.tile)
+
         for y in range(GRID_HEIGHT):
             for x in range(GRID_WIDTH):
                 t = self.eco.terrain[y][x]
                 self.ctx.fillStyle = self.terrain_colors[t]
-                self.ctx.fillRect(
-                    x * self.tile, y * self.tile,
-                    self.tile, self.tile
-                )
+                self.ctx.fillRect(x * self.tile, y * self.tile, self.tile, self.tile)
 
-        # draw plants on top
         for p in self.eco.plants:
             y_off = self.sprite_y.get(p.species, 0)
             self.ctx.drawImage(
@@ -133,7 +127,7 @@ class Renderer:
             )
 
 # ————————————————————————————————————————————————————————————————————————————
-# Bootstrapping & Loop
+# Tick loop
 eco = Ecosystem()
 rnd = Renderer("game", eco)
 
