@@ -2,7 +2,9 @@ import json
 from pyodide.http import open_url
 from js import document
 from js import window
-from pyodide import create_proxy
+from pyodide.ffi import create_proxy
+
+
 
 # schedule tick() every 500 ms via the browser
 window.setInterval(create_proxy(tick), 500)
@@ -73,5 +75,7 @@ def tick(_=None):
 
 # run every 500 ms using the browser's setInterval
 from js import window
-from pyodide import create_proxy
+from pyodide.ffi import create_proxy
+
+# wrap tick in a JS callback
 window.setInterval(create_proxy(tick), 500)
