@@ -1,7 +1,11 @@
 import json
 from pyodide.http import open_url
 from js import document
-from pyscript import loop
+from js import window
+from pyodide import create_proxy
+
+# schedule tick() every 500 ms via the browser
+window.setInterval(create_proxy(tick), 500)
 
 # ————————————————————————————————————————————————————————————————————————————
 # Helper to load JSON
@@ -67,5 +71,7 @@ def tick(_=None):
     eco.update()
     rnd.render()
 
-# run every 0.5s
-loop.schedule_interval(tick, 0.5)
+# run every 500 ms using the browser's setInterval
+from js import window
+from pyodide import create_proxy
+window.setInterval(create_proxy(tick), 500)
