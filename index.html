@@ -1,33 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EcoSim Pixel Art</title>
-  
-  <!-- PyScript core -->
-  <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css">
+
+  <!-- PyScript -->
+  <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css" />
   <script type="module" src="https://pyscript.net/releases/2024.2.1/core.js"></script>
-  
-  <!-- Simplex‐noise in JS for terrain generation -->
-  <script type="module">
-    import SimplexNoise from 'https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm';
-    // seed string ensures repeatable maps if desired
-    window.simplex = new SimplexNoise('ecosim-seed');
-  </script>
-  
-  <!-- Your pixel‐art stylesheet -->
-  <link rel="stylesheet" href="styles.css">
+
+  <!-- Your custom styles (optional) -->
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <canvas id="game" width="1024" height="768"></canvas>
 
-  <!-- no extra Python packages needed -->
   <py-config>
     packages = []
   </py-config>
 
-  <!-- single Python entry‐point -->
+  <!-- Load SimplexNoise from JS and attach to window -->
+  <py-script>
+from js import window
+import pyodide
+
+async def setup_noise():
+    noise_mod = await pyodide.code.run_js(
+        "import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm')"
+    )
+    window.simplex = noise_mod.SimplexNoise.new('ecosim-seed')
+
+await setup_noise()
+  </py-script>
+
+  <!-- Main game logic -->
   <py-script src="main.py"></py-script>
 </body>
 </html>
