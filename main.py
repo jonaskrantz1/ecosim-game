@@ -38,25 +38,29 @@ class Ecosystem:
         self.occupied = set((p.x, p.y) for p in self.plants)
 
     def generate_terrain(self):
+        coarse_w, coarse_h = 16, 12  # 64x48 divided into 4x4 chunks
+        cell_w, cell_h = GRID_WIDTH // coarse_w, GRID_HEIGHT // coarse_h
+
+        biotopes = ["water", "swamp", "sand", "grassland", "hills", "mountains"]
+
+        # Create coarse biome map
+        coarse = [
+            [random.choice(biotopes) for _ in range(coarse_w)]
+            for _ in range(coarse_h)
+        ]
+
+        # Expand to fine terrain
         terrain = []
         for y in range(GRID_HEIGHT):
             row = []
             for x in range(GRID_WIDTH):
-                r = random.random()
-                if r < 0.1:
-                    row.append("water")
-                elif r < 0.2:
-                    row.append("swamp")
-                elif r < 0.35:
-                    row.append("sand")
-                elif r < 0.6:
-                    row.append("grassland")
-                elif r < 0.85:
-                    row.append("hills")
-                else:
-                    row.append("mountains")
+                cx = x // cell_w
+                cy = y // cell_h
+                row.append(coarse[cy][cx])
             terrain.append(row)
+
         return terrain
+
 
     def update(self):
         new_plants = []
