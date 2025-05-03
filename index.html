@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css" />
   <script type="module" src="https://pyscript.net/releases/2024.2.1/core.js"></script>
 
-  <!-- Your custom styles (optional) -->
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -19,21 +18,25 @@
     packages = []
   </py-config>
 
-  <!-- Load SimplexNoise from JS and attach to window -->
+  <!-- Async wrapper to load and expose SimplexNoise -->
   <py-script>
 from js import window
+import asyncio
 import pyodide
 
-async def setup_noise():
-    noise_mod = await pyodide.code.run_js(
-        "import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm')"
-    )
-    window.simplex = noise_mod.SimplexNoise.new('ecosim-seed')
+def expose_simplex():
+    async def load_noise():
+        mod = await pyodide.code.run_js(
+            "import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm')"
+        )
+        window.simplex = mod.SimplexNoise.new("ecosim-seed")
 
-await setup_noise()
+    asyncio.ensure_future(load_noise())
+
+expose_simplex()
   </py-script>
 
-  <!-- Main game logic -->
+  <!-- Your main game logic -->
   <py-script src="main.py"></py-script>
 </body>
 </html>
