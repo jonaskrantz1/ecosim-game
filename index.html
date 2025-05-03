@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EcoSim Pixel Art</title>
 
-  <!-- PyScript -->
   <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css" />
   <script type="module" src="https://pyscript.net/releases/2024.2.1/core.js"></script>
-
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -18,7 +16,6 @@
     packages = []
   </py-config>
 
-  <!-- Async wrapper to load and expose SimplexNoise -->
   <py-script>
 from js import window
 import asyncio
@@ -29,14 +26,13 @@ def expose_simplex():
         mod = await pyodide.code.run_js(
             "import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm')"
         )
-        window.simplex = mod.SimplexNoise.new("ecosim-seed")
+        window.simplex = mod.default.new("ecosim-seed")
 
     asyncio.ensure_future(load_noise())
 
 expose_simplex()
   </py-script>
 
-  <!-- Your main game logic -->
   <py-script src="main.py"></py-script>
 </body>
 </html>
