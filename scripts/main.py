@@ -1,3 +1,5 @@
+print("▶ Loaded main.py")
+
 from pyodide.ffi import create_proxy
 from js import window
 
