@@ -1,7 +1,6 @@
 import random
 from js import window
-from scripts.utils import load_json, perlin
-
+ 
 # Species-to-biome suitability (0 = dies, 1 = ideal)
 SUITABILITY = {
     "Grass": {
