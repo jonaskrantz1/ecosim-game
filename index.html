@@ -5,17 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>EcoSim Pixel Art</title>
 
-  <!-- PyScript -->
+  <!-- 1️⃣ Load noise library & define get_noise first -->
+  <script type="module">
+    import SimplexNoise from 'https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm';
+    const noise = new SimplexNoise('ecosim-seed');
+    window.get_noise = (x, y) => noise.noise2D(x, y);
+  </script>
+
+  <!-- 2️⃣ Then load PyScript -->
   <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css" />
   <script type="module" src="https://pyscript.net/releases/2024.2.1/core.js"></script>
-  <link rel="stylesheet" href="styles.css" />
 
-  <!-- SimplexNoise JS loader: exposes window.get_noise(x, y) -->
-<script type="module">
-  import SimplexNoise from 'https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm';
-  const noise = new SimplexNoise('ecosim-seed');
-  window.get_noise = (x, y) => noise.noise2D(x, y);
-</script>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <canvas id="game" width="1024" height="768"></canvas>
