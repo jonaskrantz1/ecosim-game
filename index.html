@@ -18,17 +18,17 @@
 
   <py-script>
 import asyncio
-from js import window
+from js import window, fetch
 import js
 import pyodide
 
 async def main():
+    # Correctly load and expose JS module explicitly
     noise_mod = await js.eval("import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm')")
-    noise = noise_mod.default('ecosim-seed')  # ✅ Fixed here: no `.new`
+    window.SimplexNoise = noise_mod.default
 
-    window.get_noise = lambda x, y: noise.noise2D(x, y)
-
-    main_py = await (await js.fetch("main.py")).text()
+    # Fetch and run your main.py after JS noise module is fully loaded
+    main_py = await (await fetch("main.py")).text()
     await pyodide.runPythonAsync(main_py)
 
 asyncio.ensure_future(main())

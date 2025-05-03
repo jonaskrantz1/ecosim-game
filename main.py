@@ -4,14 +4,17 @@ from pyodide.http import open_url
 from js import document, window, Image
 from pyodide.ffi import create_proxy
 
+# Constants
 GRID_WIDTH  = 64
 GRID_HEIGHT = 48
 TILE_SIZE   = 16
 
+# Helper
 def load_json(path):
     resp = open_url(path)
     return json.loads(resp.read())
 
+# Plant & Ecosystem classes
 class Plant:
     def __init__(self, attrs, x, y):
         self.species = attrs["species"]
@@ -34,11 +37,15 @@ class Ecosystem:
         scale = 0.1
         offset = 100
         terrain = []
+
+        # Explicitly instantiate SimplexNoise
+        noise = window.SimplexNoise.new('ecosim-seed')
+
         for y in range(GRID_HEIGHT):
             row = []
             for x in range(GRID_WIDTH):
-                e = window.get_noise(x * scale, y * scale)
-                m = window.get_noise(x * scale + offset, y * scale + offset)
+                e = noise.noise2D(x * scale, y * scale)
+                m = noise.noise2D(x * scale + offset, y * scale + offset)
                 if e < -0.05:
                     row.append("water")
                 elif e < 0:
@@ -73,6 +80,7 @@ class Ecosystem:
                         break
         self.plants.extend(new_plants)
 
+# Renderer class
 class Renderer:
     def __init__(self, canvas_id, ecosystem):
         can = document.getElementById(canvas_id)
@@ -117,9 +125,11 @@ class Renderer:
                 self.tile, self.tile
             )
 
+# Initialize ecosystem and renderer
 eco = Ecosystem()
 rnd = Renderer("game", eco)
 
+# Tick loop (500ms interval)
 def tick(_=None):
     eco.update()
     rnd.render()
