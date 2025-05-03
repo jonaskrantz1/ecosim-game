@@ -4,17 +4,20 @@ from pyodide.http import open_url
 from js import document, window, Image
 from pyodide.ffi import create_proxy
 
+# ————————————————————————————————————————————————————————————————————————————
 # Constants
-GRID_WIDTH  = 64
-GRID_HEIGHT = 48
+GRID_WIDTH  = 64    # 1024 / 16
+GRID_HEIGHT = 48    # 768 / 16
 TILE_SIZE   = 16
 
-# Helper
+# ————————————————————————————————————————————————————————————————————————————
+# Helper to load JSON
 def load_json(path):
     resp = open_url(path)
     return json.loads(resp.read())
 
-# Plant & Ecosystem classes
+# ————————————————————————————————————————————————————————————————————————————
+# Plant & Ecosystem logic
 class Plant:
     def __init__(self, attrs, x, y):
         self.species = attrs["species"]
@@ -25,7 +28,9 @@ class Plant:
 
 class Ecosystem:
     def __init__(self):
+        # Generate terrain using the global noise instance
         self.terrain = self.generate_terrain()
+        # Load initial plant data
         data = load_json("data/plants.json")
         self.plants = [
             Plant(attrs, (i * 3) % GRID_WIDTH, (i * 5) % GRID_HEIGHT)
@@ -34,41 +39,40 @@ class Ecosystem:
         self.occupied = {(p.x, p.y) for p in self.plants}
 
     def generate_terrain(self):
-       scale = 0.1
-       offset = 100
-       terrain = []
+        scale = 0.1
+        offset = 100
+        terrain = []
 
-       # Directly use explicitly-created JS noise instance
-       noise = window.simplexNoiseInstance
+        # Use the synchronously-loaded UMD instance
+        noise = window.simplexNoiseInstance
 
-       for y in range(GRID_HEIGHT):
-           row = []
-           for x in range(GRID_WIDTH):
-               e = noise.noise2D(x * scale, y * scale)
-               m = noise.noise2D(x * scale + offset, y * scale + offset)
-               if e < -0.05:
-                   row.append("water")
-               elif e < 0:
-                   row.append("swamp" if m > 0 else "sand")
-               elif e < 0.1:
-                   row.append("grassland" if m > 0 else "sand")
-               elif e < 0.25:
-                   row.append("hills")
-               else:
-                   row.append("mountains")
-           terrain.append(row)
-       return terrain
-
+        for y in range(GRID_HEIGHT):
+            row = []
+            for x in range(GRID_WIDTH):
+                e = noise.noise2D(x * scale, y * scale)
+                m = noise.noise2D(x * scale + offset, y * scale + offset)
+                if e < -0.05:
+                    row.append("water")
+                elif e < 0:
+                    row.append("swamp" if m > 0 else "sand")
+                elif e < 0.1:
+                    row.append("grassland" if m > 0 else "sand")
+                elif e < 0.25:
+                    row.append("hills")
+                else:
+                    row.append("mountains")
+            terrain.append(row)
+        return terrain
 
     def update(self):
         new_plants = []
         if len(self.plants) > 1000:
-            return
+            return  # prevent runaway
 
         for p in self.plants:
             p.age += 1
             if random.random() < p.attrs["reproduction_rate"]:
-                dirs = [(-1,0), (1,0), (0,-1), (0,1)]
+                dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]
                 random.shuffle(dirs)
                 for dx, dy in dirs:
                     nx, ny = p.x + dx, p.y + dy
@@ -81,7 +85,8 @@ class Ecosystem:
                         break
         self.plants.extend(new_plants)
 
-# Renderer class
+# ————————————————————————————————————————————————————————————————————————————
+# Renderer
 class Renderer:
     def __init__(self, canvas_id, ecosystem):
         can = document.getElementById(canvas_id)
@@ -109,14 +114,15 @@ class Renderer:
         if not self.img.complete:
             return
 
+        # Draw terrain
         self.ctx.clearRect(0, 0, GRID_WIDTH * self.tile, GRID_HEIGHT * self.tile)
-
         for y in range(GRID_HEIGHT):
             for x in range(GRID_WIDTH):
                 t = self.eco.terrain[y][x]
                 self.ctx.fillStyle = self.terrain_colors[t]
                 self.ctx.fillRect(x * self.tile, y * self.tile, self.tile, self.tile)
 
+        # Draw plants
         for p in self.eco.plants:
             y_off = self.sprite_y.get(p.species, 0)
             self.ctx.drawImage(
@@ -126,11 +132,11 @@ class Renderer:
                 self.tile, self.tile
             )
 
-# Initialize ecosystem and renderer
+# ————————————————————————————————————————————————————————————————————————————
+# Bootstrapping & Main Loop
 eco = Ecosystem()
 rnd = Renderer("game", eco)
 
-# Tick loop (500ms interval)
 def tick(_=None):
     eco.update()
     rnd.render()
