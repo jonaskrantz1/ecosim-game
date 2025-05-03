@@ -19,16 +19,15 @@
   <py-script>
 import asyncio
 from js import window
+import js
 import pyodide
 
 async def main():
-    # Correct modern way of loading JS modules in Pyodide (May 2025)
-    noise_mod = await pyodide.js.import_module('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm')
+    noise_mod = await js.eval("import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm')")
     noise = noise_mod.default.new('ecosim-seed')
     window.get_noise = lambda x, y: noise.noise2D(x, y)
 
-    # Load and execute main.py now that noise is ready
-    main_py = await (await fetch("main.py")).text()
+    main_py = await (await js.fetch("main.py")).text()
     await pyodide.runPythonAsync(main_py)
 
 asyncio.ensure_future(main())
