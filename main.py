@@ -28,12 +28,35 @@ class Plant:
 
 class Ecosystem:
     def __init__(self):
+        self.terrain = self.generate_terrain()
         data = load_json("data/plants.json")
+
         self.plants = [
             Plant(attrs, (i * 3) % GRID_WIDTH, (i * 5) % GRID_HEIGHT)
             for i, attrs in enumerate(data)
         ]
         self.occupied = set((p.x, p.y) for p in self.plants)
+
+    def generate_terrain(self):
+        terrain = []
+        for y in range(GRID_HEIGHT):
+            row = []
+            for x in range(GRID_WIDTH):
+                r = random.random()
+                if r < 0.1:
+                    row.append("water")
+                elif r < 0.2:
+                    row.append("swamp")
+                elif r < 0.35:
+                    row.append("sand")
+                elif r < 0.6:
+                    row.append("grassland")
+                elif r < 0.85:
+                    row.append("hills")
+                else:
+                    row.append("mountains")
+            terrain.append(row)
+        return terrain
 
     def update(self):
         new_plants = []
@@ -46,12 +69,13 @@ class Ecosystem:
             # Attempt to reproduce
             if random.random() < p.attrs["reproduction_rate"]:
                 dirs = [(-1, 0), (1, 0), (0, -1), (0, 1)]
-                random.shuffle(dirs)  # avoid directional bias
+                random.shuffle(dirs)
                 for dx, dy in dirs:
                     nx, ny = p.x + dx, p.y + dy
                     if (0 <= nx < GRID_WIDTH and
                         0 <= ny < GRID_HEIGHT and
                         (nx, ny) not in self.occupied):
+
                         new_p = Plant(p.attrs, nx, ny)
                         new_plants.append(new_p)
                         self.occupied.add((nx, ny))
@@ -72,16 +96,36 @@ class Renderer:
         self.img = Image.new()
         self.img.src = "assets/sprites.png"
 
+        # Sprite mapping
         self.sprite_y = {
             "Grass": 0,
             "Bush": 16
         }
 
+        # Terrain colors
+        self.terrain_colors = {
+            "water": "#2060b4",
+            "swamp": "#445c3c",
+            "sand": "#e1c16e",
+            "grassland": "#4CAF50",
+            "hills": "#888c6d",
+            "mountains": "#777777"
+        }
+
     def render(self):
         if not self.img.complete:
-            return  # avoid drawing before image loads
+            return
 
         self.ctx.clearRect(0, 0, GRID_WIDTH * self.tile, GRID_HEIGHT * self.tile)
+
+        # Draw terrain base
+        for y in range(GRID_HEIGHT):
+            for x in range(GRID_WIDTH):
+                t = self.eco.terrain[y][x]
+                self.ctx.fillStyle = self.terrain_colors.get(t, "#000")
+                self.ctx.fillRect(x * self.tile, y * self.tile, self.tile, self.tile)
+
+        # Draw plants
         for p in self.eco.plants:
             y_offset = self.sprite_y.get(p.species, 0)
             self.ctx.drawImage(
