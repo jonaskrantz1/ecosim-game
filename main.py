@@ -5,14 +5,14 @@ from pyodide.http import open_url
 from js import document, window, Image
 from pyodide.ffi import create_proxy
 
+# ————————————————————————————————————————————————————————————————————————————
 # Constants
 GRID_WIDTH  = 64
 GRID_HEIGHT = 48
 TILE_SIZE   = 16
 
 # ————————————————————————————————————————————————————————————————————————————
-# PERLIN NOISE (pure Python)
-# Adapted from reference implementations
+# PURE-PYTHON PERLIN NOISE
 _perm = list(range(256))
 random.shuffle(_perm)
 _perm += _perm
@@ -25,9 +25,9 @@ def _lerp(a, b, t):
 
 def _grad(hash, x, y):
     h = hash & 3
-    u = x if h<2 else y
-    v = y if h<2 else x
-    return (u if (h&1)==0 else -u) + (v if (h&2)==0 else -v)
+    u = x if h < 2 else y
+    v = y if h < 2 else x
+    return (u if (h & 1) == 0 else -u) + (v if (h & 2) == 0 else -v)
 
 def perlin(x, y):
     xi = int(math.floor(x)) & 255
@@ -38,12 +38,12 @@ def perlin(x, y):
     v = _fade(yf)
 
     aa = _perm[_perm[xi] + yi]
-    ab = _perm[_perm[xi] + yi+1]
-    ba = _perm[_perm[xi+1] + yi]
-    bb = _perm[_perm[xi+1] + yi+1]
+    ab = _perm[_perm[xi] + yi + 1]
+    ba = _perm[_perm[xi + 1] + yi]
+    bb = _perm[_perm[xi + 1] + yi + 1]
 
-    x1 = _lerp(_grad(aa, xf, yf), _grad(ba, xf-1, yf), u)
-    x2 = _lerp(_grad(ab, xf, yf-1), _grad(bb, xf-1, yf-1), u)
+    x1 = _lerp(_grad(aa, xf, yf), _grad(ba, xf - 1, yf), u)
+    x2 = _lerp(_grad(ab, xf, yf - 1), _grad(bb, xf - 1, yf - 1), u)
     return _lerp(x1, x2, v)
 
 # ————————————————————————————————————————————————————————————————————————————
@@ -53,7 +53,7 @@ def load_json(path):
     return json.loads(resp.read())
 
 # ————————————————————————————————————————————————————————————————————————————
-# Plant & Ecosystem
+# Plant & Ecosystem logic
 class Plant:
     def __init__(self, attrs, x, y):
         self.species = attrs["species"]
@@ -67,30 +67,28 @@ class Ecosystem:
         self.terrain = self.generate_terrain()
         data = load_json("data/plants.json")
         self.plants = [
-            Plant(attrs, (i*3) % GRID_WIDTH, (i*5) % GRID_HEIGHT)
+            Plant(attrs, (i * 3) % GRID_WIDTH, (i * 5) % GRID_HEIGHT)
             for i, attrs in enumerate(data)
         ]
         self.occupied = {(p.x, p.y) for p in self.plants}
 
     def generate_terrain(self):
+        """Generate terrain with fixed distribution percentages."""
         scale = 0.1
-        offset = 100
         terrain = []
         for y in range(GRID_HEIGHT):
             row = []
             for x in range(GRID_WIDTH):
-                e = perlin(x*scale, y*scale)
-                m = perlin(x*scale+offset, y*scale+offset)
-                if e < -0.05:
-                    row.append("water")
-                elif e < 0:
-                    row.append("swamp" if m>0 else "sand")
-                elif e < 0.1:
-                    row.append("grassland" if m>0 else "sand")
-                elif e < 0.25:
-                    row.append("hills")
-                else:
-                    row.append("mountains")
+                e = perlin(x * scale, y * scale)   # in [-1,1]
+                norm = (e + 1) / 2                # now in [0,1]
+
+                if   norm < 0.20:  biome = "water"
+                elif norm < 0.30:  biome = "swamp"
+                elif norm < 0.70:  biome = "grassland"
+                elif norm < 0.90:  biome = "hills"
+                else:              biome = "mountains"
+
+                row.append(biome)
             terrain.append(row)
         return terrain
 
@@ -105,46 +103,71 @@ class Ecosystem:
                 random.shuffle(dirs)
                 for dx,dy in dirs:
                     nx,ny = p.x+dx, p.y+dy
-                    if 0<=nx<GRID_WIDTH and 0<=ny<GRID_HEIGHT and (nx,ny) not in self.occupied:
+                    if (0 <= nx < GRID_WIDTH and
+                        0 <= ny < GRID_HEIGHT and
+                        (nx, ny) not in self.occupied):
                         new = Plant(p.attrs, nx, ny)
                         new_plants.append(new)
-                        self.occupied.add((nx,ny))
+                        self.occupied.add((nx, ny))
                         break
         self.plants.extend(new_plants)
 
 # ————————————————————————————————————————————————————————————————————————————
 # Renderer
 class Renderer:
-    def __init__(self, cid, eco):
-        can = document.getElementById(cid)
+    def __init__(self, canvas_id, ecosystem):
+        can = document.getElementById(canvas_id)
         self.ctx = can.getContext("2d")
-        self.eco = eco
+        self.eco = ecosystem
         self.tile = TILE_SIZE
+
         self.img = Image.new()
         self.img.src = "assets/sprites.png"
-        self.sprite_y = {"Grass":0,"Bush":16}
+
+        self.sprite_y = {
+            "Grass":    0,
+            "Bush":     16
+        }
         self.terrain_colors = {
-            "water":"#2060b4","swamp":"#445c3c","sand":"#e1c16e",
-            "grassland":"#4CAF50","hills":"#888c6d","mountains":"#777777"
+            "water":    "#2060b4",
+            "swamp":    "#445c3c",
+            "sand":     "#e1c16e",
+            "grassland":"#4CAF50",
+            "hills":    "#888c6d",
+            "mountains":"#777777"
         }
 
     def render(self):
-        if not self.img.complete: return
-        self.ctx.clearRect(0,0,GRID_WIDTH*self.tile,GRID_HEIGHT*self.tile)
+        if not self.img.complete:
+            return
+
+        self.ctx.clearRect(0, 0, GRID_WIDTH * self.tile, GRID_HEIGHT * self.tile)
+
+        # draw terrain
         for y in range(GRID_HEIGHT):
             for x in range(GRID_WIDTH):
                 t = self.eco.terrain[y][x]
                 self.ctx.fillStyle = self.terrain_colors[t]
-                self.ctx.fillRect(x*self.tile,y*self.tile,self.tile,self.tile)
-        for p in self.eco.plants:
-            yoff = self.sprite_y.get(p.species,0)
-            self.ctx.drawImage(self.img,0,yoff,self.tile,self.tile,
-                p.x*self.tile,p.y*self.tile,self.tile,self.tile)
+                self.ctx.fillRect(x * self.tile, y * self.tile, self.tile, self.tile)
 
-# Boot & loop
+        # draw plants
+        for p in self.eco.plants:
+            y_off = self.sprite_y.get(p.species, 0)
+            self.ctx.drawImage(
+                self.img,
+                0, y_off, self.tile, self.tile,
+                p.x * self.tile, p.y * self.tile,
+                self.tile, self.tile
+            )
+
+# ————————————————————————————————————————————————————————————————————————————
+# Bootstrapping & Loop
 eco = Ecosystem()
-rnd = Renderer("game",eco)
+rnd = Renderer("game", eco)
+
 def tick(_=None):
-    eco.update(); rnd.render()
+    eco.update()
+    rnd.render()
+
 proxy = create_proxy(tick)
-window.setInterval(proxy,500)
+window.setInterval(proxy, 500)
