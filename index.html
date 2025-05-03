@@ -16,7 +16,13 @@
 <body>
   <canvas id="game" width="1024" height="768"></canvas>
 
-  <!-- Now scripts/main.py can import scripts.* modules -->
+  <!-- load helpers first -->
+  <py-script src="scripts/utils.py"></py-script>
+  <!-- then load the bulk logic -->
+  <py-script src="scripts/ecosystem.py"></py-script>
+  <py-script src="scripts/rendering.py"></py-script>
+  <!-- finally boot the sim -->
   <py-script src="scripts/main.py"></py-script>
+
 </body>
 </html>
