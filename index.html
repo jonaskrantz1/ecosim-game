@@ -1,21 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EcoSim Pixel Art</title>
 
-  <!-- 1) Load UMD bundle synchronously -->
-  <script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/dist/simplex-noise.js"></script>
-  <script>
-    window.simplexNoiseInstance = new SimplexNoise('ecosim-seed');
-  </script>
-
-  <!-- 2) PyScript core -->
-  <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css"/>
+  <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css">
   <script type="module" src="https://pyscript.net/releases/2024.2.1/core.js"></script>
-  
-  <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <canvas id="game" width="1024" height="768"></canvas>
@@ -24,7 +16,6 @@
     packages = []
   </py-config>
 
-  <!-- Run main.py immediately (JS noise instance already ready) -->
   <py-script src="main.py"></py-script>
 </body>
 </html>
