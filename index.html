@@ -9,7 +9,7 @@
   <script type="module" src="https://pyscript.net/releases/2024.2.1/core.js"></script>
   <link rel="stylesheet" href="styles.css">
 
-  <!-- Atomic JS Module Loader and Instance Creation -->
+  <!-- JS Noise instance explicitly loaded -->
   <script type="module">
     import SimplexNoise from 'https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm';
     window.simplexNoiseInstance = new SimplexNoise('ecosim-seed');
@@ -22,12 +22,15 @@
     packages = []
   </py-config>
 
-  <!-- Python code loading -->
+  <!-- Python execution delayed until JS fully ready -->
   <py-script>
 import asyncio
-from js import fetch
+from js import fetch, window
 
 async def main():
+    # Wait explicitly for JS 'load' event (ensures simplexNoiseInstance is ready)
+    await asyncio.Future.from_js(window, 'load')
+
     main_py = await (await fetch("main.py")).text()
     exec(main_py, globals())
 
