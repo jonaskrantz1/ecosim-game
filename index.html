@@ -24,7 +24,8 @@ import pyodide
 
 async def main():
     noise_mod = await js.eval("import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm')")
-    noise = noise_mod.default.new('ecosim-seed')
+    noise = noise_mod.default('ecosim-seed')  # ✅ Fixed here: no `.new`
+
     window.get_noise = lambda x, y: noise.noise2D(x, y)
 
     main_py = await (await js.fetch("main.py")).text()
