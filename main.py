@@ -4,20 +4,14 @@ from pyodide.http import open_url
 from js import document, window, Image
 from pyodide.ffi import create_proxy
 
-# ————————————————————————————————————————————————————————————————————————————
-# Constants
 GRID_WIDTH  = 64
 GRID_HEIGHT = 48
 TILE_SIZE   = 16
 
-# ————————————————————————————————————————————————————————————————————————————
-# Helper
 def load_json(path):
     resp = open_url(path)
     return json.loads(resp.read())
 
-# ————————————————————————————————————————————————————————————————————————————
-# Plant & Ecosystem
 class Plant:
     def __init__(self, attrs, x, y):
         self.species = attrs["species"]
@@ -37,7 +31,6 @@ class Ecosystem:
         self.occupied = {(p.x, p.y) for p in self.plants}
 
     def generate_terrain(self):
-        """Generates smooth terrain using JS-based get_noise()."""
         scale = 0.1
         offset = 100
         terrain = []
@@ -80,8 +73,6 @@ class Ecosystem:
                         break
         self.plants.extend(new_plants)
 
-# ————————————————————————————————————————————————————————————————————————————
-# Renderer
 class Renderer:
     def __init__(self, canvas_id, ecosystem):
         can = document.getElementById(canvas_id)
@@ -126,8 +117,6 @@ class Renderer:
                 self.tile, self.tile
             )
 
-# ————————————————————————————————————————————————————————————————————————————
-# Tick loop
 eco = Ecosystem()
 rnd = Renderer("game", eco)
 

@@ -1,22 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EcoSim Pixel Art</title>
 
-  <!-- 1️⃣ Load noise library & define get_noise first -->
-  <script type="module">
-    import SimplexNoise from 'https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm';
-    const noise = new SimplexNoise('ecosim-seed');
-    window.get_noise = (x, y) => noise.noise2D(x, y);
-  </script>
-
-  <!-- 2️⃣ Then load PyScript -->
-  <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css" />
+  <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css">
   <script type="module" src="https://pyscript.net/releases/2024.2.1/core.js"></script>
-
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <canvas id="game" width="1024" height="768"></canvas>
@@ -25,6 +16,23 @@
     packages = []
   </py-config>
 
-  <py-script src="main.py"></py-script>
+  <py-script>
+import asyncio
+from js import window
+import pyodide
+
+async def main():
+    noise_mod = await pyodide.code.run_js_async(
+        "import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm')"
+    )
+    noise = noise_mod.default.new('ecosim-seed')
+    window.get_noise = lambda x, y: noise.noise2D(x, y)
+
+    # Now safely load main.py after JS module is ready
+    await pyodide.runPythonAsync(await (await fetch("main.py")).text())
+
+asyncio.ensure_future(main())
+  </py-script>
+
 </body>
 </html>
