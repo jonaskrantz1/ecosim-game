@@ -1,4 +1,6 @@
 print("▶ Loaded main.py")
+import sys
+print("PATHS:", sys.path)
 
 from pyodide.ffi import create_proxy
 from js import window
