@@ -1,6 +1,11 @@
 import json
 from pyodide.http import open_url
 from js import document
+import random
+
+GRID_WIDTH = 64   # 1024 / 16
+GRID_HEIGHT = 48  # 768 / 16
+
 
 # ————————————————————————————————————————————————————————————————————————————
 # Helper to load JSON
@@ -25,10 +30,33 @@ class Ecosystem:
             Plant(attrs, (i*3) % 64, (i*5) % 48)
             for i, attrs in enumerate(data)
         ]
+        self.occupied = set((p.x, p.y) for p in self.plants)
+
+
+    
 
     def update(self):
+        new_plants = []
+        if len(self.plants) > 1000:
+            return
+
         for p in self.plants:
             p.age += 1
+
+            # Attempt to reproduce
+            if random.random() < p.attrs["reproduction_rate"]:
+                # Try 4 adjacent tiles (up/down/left/right)
+                for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:
+                    nx, ny = p.x + dx, p.y + dy
+                    if (0 <= nx < GRID_WIDTH and
+                        0 <= ny < GRID_HEIGHT and
+                        (nx, ny) not in self.occupied):
+
+                        new_p = Plant(p.attrs, nx, ny)
+                        new_plants.append(new_p)
+                        self.occupied.add((nx, ny))
+                        break  # only spread once
+        self.plants.extend(new_plants)
 
 # ————————————————————————————————————————————————————————————————————————————
 # Renderer
