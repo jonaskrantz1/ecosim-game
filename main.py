@@ -7,12 +7,12 @@ from pyodide.ffi import create_proxy
 
 # ————————————————————————————————————————————————————————————————————————————
 # Constants
-GRID_WIDTH  = 64
-GRID_HEIGHT = 48
+GRID_WIDTH  = 64    # 1024 / 16
+GRID_HEIGHT = 48    # 768 / 16
 TILE_SIZE   = 16
 
 # ————————————————————————————————————————————————————————————————————————————
-# PURE-PYTHON PERLIN NOISE
+# PURE-PYTHON PERLIN NOISE (no external deps)
 _perm = list(range(256))
 random.shuffle(_perm)
 _perm += _perm
@@ -53,7 +53,28 @@ def load_json(path):
     return json.loads(resp.read())
 
 # ————————————————————————————————————————————————————————————————————————————
-# Plant & Ecosystem logic
+# Plant & Ecosystem logic + Biome Suitability
+
+# Define species-to-biome suitability (0 = cannot live; 1 = ideal)
+SUITABILITY = {
+    "Grass": {
+        "water":      0.0,
+        "swamp":      0.5,
+        "sand":       0.1,
+        "grassland":  1.0,
+        "hills":      0.8,
+        "mountains":  0.2
+    },
+    "Bush": {
+        "water":      0.0,
+        "swamp":      0.7,
+        "sand":       0.3,
+        "grassland":  0.8,
+        "hills":      1.0,
+        "mountains":  0.5
+    }
+}
+
 class Plant:
     def __init__(self, attrs, x, y):
         self.species = attrs["species"]
@@ -64,7 +85,9 @@ class Plant:
 
 class Ecosystem:
     def __init__(self):
+        # Generate terrain
         self.terrain = self.generate_terrain()
+        # Load initial plant data
         data = load_json("data/plants.json")
         self.plants = [
             Plant(attrs, (i * 3) % GRID_WIDTH, (i * 5) % GRID_HEIGHT)
@@ -79,8 +102,8 @@ class Ecosystem:
         for y in range(GRID_HEIGHT):
             row = []
             for x in range(GRID_WIDTH):
-                e = perlin(x * scale, y * scale)   # in [-1,1]
-                norm = (e + 1) / 2                # now in [0,1]
+                e = perlin(x * scale, y * scale)    # in [-1,1]
+                norm = (e + 1) / 2                  # now in [0,1]
 
                 if   norm < 0.20:  biome = "water"
                 elif norm < 0.30:  biome = "swamp"
@@ -93,16 +116,30 @@ class Ecosystem:
         return terrain
 
     def update(self):
+        # 1) Filter out plants that cannot survive in their biome
+        survivors = []
+        for p in self.plants:
+            p.age += 1
+            biome = self.terrain[p.y][p.x]
+            factor = SUITABILITY[p.species].get(biome, 0.0)
+            if factor > 0.0:
+                survivors.append(p)
+        self.plants = survivors
+        self.occupied = {(p.x, p.y) for p in self.plants}
+
+        # 2) Reproduction weighted by suitability
         new_plants = []
         if len(self.plants) > 1000:
             return
         for p in self.plants:
-            p.age += 1
-            if random.random() < p.attrs["reproduction_rate"]:
+            biome = self.terrain[p.y][p.x]
+            factor = SUITABILITY[p.species].get(biome, 0.0)
+            rate = p.attrs["reproduction_rate"] * factor
+            if random.random() < rate:
                 dirs = [(-1,0),(1,0),(0,-1),(0,1)]
                 random.shuffle(dirs)
-                for dx,dy in dirs:
-                    nx,ny = p.x+dx, p.y+dy
+                for dx, dy in dirs:
+                    nx, ny = p.x + dx, p.y + dy
                     if (0 <= nx < GRID_WIDTH and
                         0 <= ny < GRID_HEIGHT and
                         (nx, ny) not in self.occupied):
@@ -141,16 +178,15 @@ class Renderer:
         if not self.img.complete:
             return
 
+        # Draw terrain base
         self.ctx.clearRect(0, 0, GRID_WIDTH * self.tile, GRID_HEIGHT * self.tile)
-
-        # draw terrain
         for y in range(GRID_HEIGHT):
             for x in range(GRID_WIDTH):
                 t = self.eco.terrain[y][x]
                 self.ctx.fillStyle = self.terrain_colors[t]
                 self.ctx.fillRect(x * self.tile, y * self.tile, self.tile, self.tile)
 
-        # draw plants
+        # Draw plants on top
         for p in self.eco.plants:
             y_off = self.sprite_y.get(p.species, 0)
             self.ctx.drawImage(
