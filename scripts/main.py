@@ -1,5 +1,6 @@
 print("▶ Loaded main.py")
 import sys
+sys.path.insert(0, "scripts")
 print("PATHS:", sys.path)
 
 from pyodide.ffi import create_proxy
