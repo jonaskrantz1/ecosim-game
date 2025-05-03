@@ -1,7 +1,7 @@
 import json
 import random
 from pyodide.http import open_url
-from js import document, window, Image, get_noise
+from js import document, window, Image
 from pyodide.ffi import create_proxy
 
 # ————————————————————————————————————————————————————————————————————————————
@@ -37,15 +37,15 @@ class Ecosystem:
         self.occupied = {(p.x, p.y) for p in self.plants}
 
     def generate_terrain(self):
-        """Generates smooth terrain using get_noise(x, y) from JS."""
+        """Generates smooth terrain using JS-based get_noise()."""
         scale = 0.1
         offset = 100
         terrain = []
         for y in range(GRID_HEIGHT):
             row = []
             for x in range(GRID_WIDTH):
-                e = get_noise(x * scale, y * scale)
-                m = get_noise(x * scale + offset, y * scale + offset)
+                e = window.get_noise(x * scale, y * scale)
+                m = window.get_noise(x * scale + offset, y * scale + offset)
                 if e < -0.05:
                     row.append("water")
                 elif e < 0:
