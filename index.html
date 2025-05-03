@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EcoSim Pixel Art</title>
 
-  <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css">
-  <script type="module" src="https://pyscript.net/releases/2024.2.1/core.js"></script>
-  <link rel="stylesheet" href="styles.css">
-
-  <!-- JS Noise instance explicitly loaded -->
-  <script type="module">
-    import SimplexNoise from 'https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm';
+  <!-- 1) Load UMD bundle synchronously -->
+  <script src="https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/dist/simplex-noise.js"></script>
+  <script>
     window.simplexNoiseInstance = new SimplexNoise('ecosim-seed');
   </script>
+
+  <!-- 2) PyScript core -->
+  <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css"/>
+  <script type="module" src="https://pyscript.net/releases/2024.2.1/core.js"></script>
+  
+  <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
   <canvas id="game" width="1024" height="768"></canvas>
@@ -22,20 +24,7 @@
     packages = []
   </py-config>
 
-  <!-- Python execution delayed until JS fully ready -->
-  <py-script>
-import asyncio
-from js import fetch, window
-
-async def main():
-    # Wait explicitly for JS 'load' event (ensures simplexNoiseInstance is ready)
-    await asyncio.Future.from_js(window, 'load')
-
-    main_py = await (await fetch("main.py")).text()
-    exec(main_py, globals())
-
-asyncio.ensure_future(main())
-  </py-script>
-
+  <!-- Run main.py immediately (JS noise instance already ready) -->
+  <py-script src="main.py"></py-script>
 </body>
 </html>
