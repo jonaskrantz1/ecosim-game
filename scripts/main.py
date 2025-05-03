@@ -1,6 +1,8 @@
-from ecosystem import Ecosystem
-from rendering import Renderer
+from scripts.ecosystem import Ecosystem
+from scripts.rendering import Renderer
+from scripts.utils import *
 from pyscript import loop
+
 
 ecosystem = Ecosystem()
 renderer = Renderer("game", ecosystem)
