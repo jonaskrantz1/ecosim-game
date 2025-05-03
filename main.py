@@ -1,7 +1,6 @@
 import json
 from pyodide.http import open_url
 from js import document
-from js import window
 
 # ————————————————————————————————————————————————————————————————————————————
 # Helper to load JSON
@@ -69,9 +68,7 @@ def tick(_=None):
 
 # run every 500 ms using the browser's setInterval
 from js import window
-window.setInterval(tick, 500)
+from pyodide.ffi import create_proxy
 
-# Expose Python variables to JS console for debugging
-import js
-js.window.eco = eco
-js.window.rnd = rnd
+tick_proxy = create_proxy(tick)
+window.setInterval(tick_proxy, 500)
