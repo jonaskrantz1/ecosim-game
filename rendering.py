@@ -5,9 +5,7 @@ class Renderer:
         canvas = document.getElementById(canvas_id)
         self.ctx = canvas.getContext('2d')
         self.ecosystem = ecosystem
-        self.tile_size = 16  # Clear pixel visibility
-        self.grid_width = 64
-        self.grid_height = 48
+        self.tile_size = 16
         self.colors = {
             'Grass': '#4CAF50',
             'Bush': '#8BC34A',

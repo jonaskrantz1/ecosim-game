@@ -11,12 +11,8 @@ class Plant:
 class Ecosystem:
     def __init__(self):
         plant_data = load_json('data/plants.json')
-        # Spread plants evenly initially
         self.plants = [
-            Plant(species=p['species'],
-                  x=(i * 3) % 64,        # mod by grid width
-                  y=(i * 5) % 48,        # mod by grid height
-                  attributes=p)
+            Plant(p["species"], i % 64, i // 64, p)
             for i, p in enumerate(plant_data)
         ]
 
