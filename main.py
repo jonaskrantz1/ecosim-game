@@ -2,7 +2,6 @@ import json
 from pyodide.http import open_url
 from js import document
 from js import window
-from pyodide.ffi import create_proxy
 
 
 
@@ -73,9 +72,8 @@ def tick(_=None):
     eco.update()
     rnd.render()
 
-# run every 500 ms using the browser's setInterval
+# Instead of importing create_proxy, just schedule directly:
 from js import window
-from pyodide.ffi import create_proxy
 
-# wrap tick in a JS callback
-window.setInterval(create_proxy(tick), 500)
+# window.setInterval will automatically wrap your Python function
+window.setInterval(tick, 500)
