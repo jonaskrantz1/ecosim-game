@@ -5,11 +5,11 @@
 from pyodide.http import open_url
 
 def _load_and_exec(path):
-    resp = open_url(path)
-    # read() here returns bytes; decode to str
-    src = resp.read().decode("utf-8")
+    # open_url().read() returns a Python string
+    src = open_url(path).read()
     exec(src, globals())
 
+# now load each module in order
 for mod in ("utils.py", "ecosystem.py", "rendering.py"):
     _load_and_exec(f"scripts/{mod}")
 
