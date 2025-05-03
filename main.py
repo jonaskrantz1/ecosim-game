@@ -3,6 +3,7 @@ from rendering import Renderer
 from utils import load_json
 from pyscript import loop
 
+
 ecosystem = Ecosystem()
 renderer = Renderer("game", ecosystem)
 
