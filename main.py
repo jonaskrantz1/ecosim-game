@@ -32,30 +32,36 @@ class Ecosystem:
 
 # ————————————————————————————————————————————————————————————————————————————
 # Renderer
+from js import Image
+
 class Renderer:
     def __init__(self, canvas_id, ecosystem):
         can = document.getElementById(canvas_id)
         self.ctx = can.getContext("2d")
         self.eco = ecosystem
         self.tile = 16
-        self.colors = {
-            "Grass": "#4CAF50",
-            "Bush":  "#8BC34A",
-            "Tree":  "#388E3C",
+
+        # Sprite image
+        self.img = Image.new()
+        self.img.src = "assets/sprites.png"
+
+        # Map species to sprite Y-offset (in pixels)
+        self.sprite_y = {
+            "Grass": 0,
+            "Bush": 16
         }
 
     def render(self):
-        # clear
         self.ctx.clearRect(0, 0, 1024, 768)
-        # draw each plant
         for p in self.eco.plants:
-            self.ctx.fillStyle = self.colors.get(p.species, "#FFF")
-            self.ctx.fillRect(
-                p.x * self.tile,
-                p.y * self.tile,
-                self.tile,
-                self.tile
+            y_offset = self.sprite_y.get(p.species, 0)
+            self.ctx.drawImage(
+                self.img,
+                0, y_offset, 16, 16,                 # source (from sprite)
+                p.x * self.tile, p.y * self.tile,    # destination position
+                16, 16                               # destination size
             )
+
 
 # ————————————————————————————————————————————————————————————————————————————
 # Bootstrapping
