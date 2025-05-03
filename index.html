@@ -22,14 +22,14 @@ from js import window
 import pyodide
 
 async def main():
-    noise_mod = await pyodide.code.run_js_async(
-        "import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm')"
-    )
+    # Correct modern way of loading JS modules in Pyodide (May 2025)
+    noise_mod = await pyodide.js.import_module('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm')
     noise = noise_mod.default.new('ecosim-seed')
     window.get_noise = lambda x, y: noise.noise2D(x, y)
 
-    # Now safely load main.py after JS module is ready
-    await pyodide.runPythonAsync(await (await fetch("main.py")).text())
+    # Load and execute main.py now that noise is ready
+    main_py = await (await fetch("main.py")).text()
+    await pyodide.runPythonAsync(main_py)
 
 asyncio.ensure_future(main())
   </py-script>
