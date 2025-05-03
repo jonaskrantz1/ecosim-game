@@ -1,22 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>EcoSim Pixel Art</title>
 
-  <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css">
+  <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css"/>
   <script type="module" src="https://pyscript.net/releases/2024.2.1/core.js"></script>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css"/>
+
+  <py-config>
+    packages = []
+    # Add our scripts/ folder to Python's import path:
+    exec = """
+import sys
+sys.path.append('scripts')
+"""
+  </py-config>
 </head>
 <body>
   <canvas id="game" width="1024" height="768"></canvas>
 
-  <py-config>
-    packages = []
-  </py-config>
-
-  <!-- Only need to load main.py — it will import the other modules -->
+  <!-- Now scripts/main.py can import scripts.* modules -->
   <py-script src="scripts/main.py"></py-script>
 </body>
 </html>
