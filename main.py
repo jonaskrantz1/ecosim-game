@@ -34,30 +34,31 @@ class Ecosystem:
         self.occupied = {(p.x, p.y) for p in self.plants}
 
     def generate_terrain(self):
-        scale = 0.1
-        offset = 100
-        terrain = []
+       scale = 0.1
+       offset = 100
+       terrain = []
 
-        # Explicitly instantiate SimplexNoise
-        noise = window.SimplexNoise.new('ecosim-seed')
+       # Directly use explicitly-created JS noise instance
+       noise = window.simplexNoiseInstance
 
-        for y in range(GRID_HEIGHT):
-            row = []
-            for x in range(GRID_WIDTH):
-                e = noise.noise2D(x * scale, y * scale)
-                m = noise.noise2D(x * scale + offset, y * scale + offset)
-                if e < -0.05:
-                    row.append("water")
-                elif e < 0:
-                    row.append("swamp" if m > 0 else "sand")
-                elif e < 0.1:
-                    row.append("grassland" if m > 0 else "sand")
-                elif e < 0.25:
-                    row.append("hills")
-                else:
-                    row.append("mountains")
-            terrain.append(row)
-        return terrain
+       for y in range(GRID_HEIGHT):
+           row = []
+           for x in range(GRID_WIDTH):
+               e = noise.noise2D(x * scale, y * scale)
+               m = noise.noise2D(x * scale + offset, y * scale + offset)
+               if e < -0.05:
+                   row.append("water")
+               elif e < 0:
+                   row.append("swamp" if m > 0 else "sand")
+               elif e < 0.1:
+                   row.append("grassland" if m > 0 else "sand")
+               elif e < 0.25:
+                   row.append("hills")
+               else:
+                   row.append("mountains")
+           terrain.append(row)
+       return terrain
+
 
     def update(self):
         new_plants = []

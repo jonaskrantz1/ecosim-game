@@ -8,6 +8,12 @@
   <link rel="stylesheet" href="https://pyscript.net/releases/2024.2.1/core.css">
   <script type="module" src="https://pyscript.net/releases/2024.2.1/core.js"></script>
   <link rel="stylesheet" href="styles.css">
+
+  <!-- Atomic JS Module Loader and Instance Creation -->
+  <script type="module">
+    import SimplexNoise from 'https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm';
+    window.simplexNoiseInstance = new SimplexNoise('ecosim-seed');
+  </script>
 </head>
 <body>
   <canvas id="game" width="1024" height="768"></canvas>
@@ -16,20 +22,13 @@
     packages = []
   </py-config>
 
+  <!-- Python code loading -->
   <py-script>
 import asyncio
-from js import window, fetch
-import js
+from js import fetch
 
 async def main():
-    # Load JS module explicitly and expose SimplexNoise constructor
-    noise_mod = await js.eval("import('https://cdn.jsdelivr.net/npm/simplex-noise@4.0.0/+esm')")
-    window.SimplexNoise = noise_mod.default
-
-    # Fetch main.py text
     main_py = await (await fetch("main.py")).text()
-
-    # Execute main.py directly (no pyodide.runPythonAsync in Python)
     exec(main_py, globals())
 
 asyncio.ensure_future(main())
