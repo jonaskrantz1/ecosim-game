@@ -1,15 +1,27 @@
-import sys
-sys.path.insert(0, "scripts")
-print("▶ Loaded main.py")
-print("PATHS:", sys.path)
+# ────────────────────────────────────────────────────────────
+# Dynamically load utils.py, ecosystem.py, rendering.py into this namespace
+# ────────────────────────────────────────────────────────────
+
+from pyodide.http import open_url
+
+def _load_and_exec(path):
+    resp = open_url(path)
+    # read() here returns bytes; decode to str
+    src = resp.read().decode("utf-8")
+    exec(src, globals())
+
+for mod in ("utils.py", "ecosystem.py", "rendering.py"):
+    _load_and_exec(f"scripts/{mod}")
+
+# ────────────────────────────────────────────────────────────
+# Now everything from those modules is in global scope: 
+#   load_json, perlin, Plant, Ecosystem, Renderer, etc.
+# ────────────────────────────────────────────────────────────
 
 from pyodide.ffi import create_proxy
 from js import window
 
-# Import from same folder, not top-level
-from ecosystem import Ecosystem
-from rendering import Renderer
-
+# Bootstrapping
 eco = Ecosystem()
 rnd = Renderer("game", eco)
 
