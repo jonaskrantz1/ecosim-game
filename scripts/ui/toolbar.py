@@ -1,6 +1,3 @@
-from js import document
-from .button import Button
-
 class Toolbar:
     def __init__(self):
         self.element = document.createElement('div')
