@@ -1,3 +1,5 @@
+from js import document
+
 class Toolbar:
     def __init__(self):
         self.element = document.createElement('div')
@@ -20,7 +22,13 @@ class Toolbar:
         print("Open Terrain Palette")
 
     def open_plant_palette(self):
-        print("Open Plant Palette")
+        plant_data = load_json("data/plants.json")
+        palette = Palette(plant_data, self.select_plant)
+        palette.render()
+
+    def select_plant(self, plant_attrs):
+        window.current_selected_plant = plant_attrs
+        print(f'Selected plant: {plant_attrs["species"]}')
 
     def open_animal_palette(self):
         print("Open Animal Palette")
@@ -29,4 +37,5 @@ class Toolbar:
         print("Open Object Palette")
 
     def activate_remove_mode(self):
+        window.current_selected_plant = None
         print("Remove Mode Active")

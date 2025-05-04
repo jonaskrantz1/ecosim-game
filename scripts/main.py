@@ -22,6 +22,26 @@ rnd = Renderer("game", eco)
 toolbar = Toolbar()
 toolbar.render()
 
+
+def canvas_click(evt):
+    tile_size = rnd.tile
+    canvas = evt.target
+    rect = canvas.getBoundingClientRect()
+    x = int((evt.clientX - rect.left) / tile_size)
+    y = int((evt.clientY - rect.top) / tile_size)
+
+    if hasattr(window, 'current_selected_plant') and window.current_selected_plant:
+        plant_attrs = window.current_selected_plant
+        if (x, y) not in eco.occupied:
+            new_plant = Plant(plant_attrs, x, y)
+            eco.plants.append(new_plant)
+            eco.occupied.add((x, y))
+            print(f'Planted {plant_attrs["species"]} at ({x}, {y})')
+
+# Set event listener on the canvas
+canvas_elem = document.getElementById('game')
+canvas_elem.addEventListener('click', create_proxy(canvas_click))
+
 # Main update loop
 def tick(_=None):
     eco.update()
