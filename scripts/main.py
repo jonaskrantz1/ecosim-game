@@ -1,30 +1,29 @@
-# ────────────────────────────────────────────────────────────
-# Dynamically load utils.py, ecosystem.py, rendering.py into this namespace
-# ────────────────────────────────────────────────────────────
-
 from pyodide.http import open_url
+from pyodide.ffi import create_proxy
+from js import window, document
 
+# Dynamically load utils, ecosystem, rendering modules
 def _load_and_exec(path):
-    # open_url().read() returns a Python string
     src = open_url(path).read()
     exec(src, globals())
 
-# now load each module in order
 for mod in ("utils.py", "ecosystem.py", "rendering.py"):
     _load_and_exec(f"scripts/{mod}")
 
-# ────────────────────────────────────────────────────────────
-# Now everything from those modules is in global scope: 
-#   load_json, perlin, Plant, Ecosystem, Renderer, etc.
-# ────────────────────────────────────────────────────────────
+# Import Toolbar UI
+_load_and_exec("scripts/ui/button.py")
+_load_and_exec("scripts/ui/toolbar.py")
+_load_and_exec("scripts/ui/palette.py")  # placeholder for palette later
 
-from pyodide.ffi import create_proxy
-from js import window
-
-# Bootstrapping
+# Initialize ecosystem and renderer
 eco = Ecosystem()
 rnd = Renderer("game", eco)
 
+# Initialize Toolbar UI
+toolbar = Toolbar()
+toolbar.render()
+
+# Main update loop
 def tick(_=None):
     eco.update()
     rnd.render()
