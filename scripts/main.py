@@ -38,9 +38,13 @@ def canvas_click(evt):
             eco.occupied.add((x, y))
             print(f'Planted {plant_attrs["species"]} at ({x}, {y})')
 
-# Set event listener on the canvas
+    elif hasattr(window, 'current_selected_terrain') and window.current_selected_terrain:
+        eco.terrain[y][x] = window.current_selected_terrain
+        print(f'Set terrain to {window.current_selected_terrain} at ({x}, {y})')
+
 canvas_elem = document.getElementById('game')
 canvas_elem.addEventListener('click', create_proxy(canvas_click))
+
 
 # Main update loop
 def tick(_=None):
