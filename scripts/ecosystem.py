@@ -1,7 +1,6 @@
 import random
 from js import window
- 
-# Species-to-biome suitability (0 = dies, 1 = ideal)
+
 SUITABILITY = {
     "Grass": {
         "water":     0.0,
@@ -38,15 +37,15 @@ class Ecosystem:
             for i, attrs in enumerate(data)
         ]
         self.occupied = {(p.x, p.y) for p in self.plants}
+        self.tick_count = 0  # Track elapsed ticks (updates)
 
     def generate_terrain(self):
-        """Generate terrain with fixed percentages (20/10/40/20/10)."""
         terrain = []
         for y in range(48):
             row = []
             for x in range(64):
                 e = perlin(x * 0.1, y * 0.1)
-                norm = (e + 1) / 2  # map [-1,1]→[0,1]
+                norm = (e + 1) / 2
 
                 if norm < 0.20:
                     row.append("water")
@@ -62,7 +61,9 @@ class Ecosystem:
         return terrain
 
     def update(self):
-        # 1) Cull plants that can't survive
+        self.tick_count += 1
+
+        # Aging and survival check each tick
         survivors = []
         for p in self.plants:
             p.age += 1
@@ -70,22 +71,27 @@ class Ecosystem:
             factor = SUITABILITY[p.species].get(biome, 0.0)
             if factor > 0.0:
                 survivors.append(p)
+
         self.plants = survivors
         self.occupied = {(p.x, p.y) for p in self.plants}
 
-        # 2) Reproduction weighted by suitability
+        # Reproduce only every 5 seconds (assuming update tick = 500ms, every 10 ticks)
+        if self.tick_count % 10 == 0:
+            self.reproduce()
+
+    def reproduce(self):
         new_plants = []
-        if len(self.plants) > 1000:
-            return
+
         for p in self.plants:
             biome = self.terrain[p.y][p.x]
             factor = SUITABILITY[p.species].get(biome, 0.0)
             rate = p.attrs["reproduction_rate"] * factor
             if random.random() < rate:
-                for dx, dy in [(-1,0),(1,0),(0,-1),(0,1)]:
+                for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:
                     nx, ny = p.x + dx, p.y + dy
                     if 0 <= nx < 64 and 0 <= ny < 48 and (nx, ny) not in self.occupied:
                         new_plants.append(Plant(p.attrs, nx, ny))
                         self.occupied.add((nx, ny))
                         break
+
         self.plants.extend(new_plants)
